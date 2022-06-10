@@ -1,0 +1,113 @@
+from utils.Logger import Logger
+
+
+class DSKPowell:
+    """
+        Одномерный метод поиска 'ДСК-Пауэлл'
+
+        dx = x3-x2 = x2-x1
+        x* = x2 + ( dx*(f(x1)-f(x3)) ) / ( 2*(f(x1)-2*f(x2)+f(x3) )
+    """
+
+    MAX_RECURSION_DEPTH = 50
+
+    def __init__(self, fn, a, b, step, eps=0.001):
+        """
+            :param a: left bound
+            :param b: right bound
+        """
+        self.f = fn
+        self.x1 = a
+        self.fx1 = self.f(self.x1)
+        self.x2 = (a+b)/2   # <-- central point
+        self.fx2 = self.f(self.x2)
+        self.x3 = b
+        self.fx3 = self.f(self.x3)
+        self.step = step
+        self.eps = eps
+
+        self.iterations = 0
+        self.x = None       # <--- this x* we will find
+
+        with Logger("DSK Powell"):
+            self.find_x()
+
+    def should_stop(self, x, fx):
+        """
+            Criterias:
+                |f(x2) - f(x*)| <= eps
+                |x2 - x*| <= eps
+            :return: True if criteria is passed or reached max_recursion_depth, otherwise False
+        """
+        if all([abs(self.fx2 - fx) <= self.eps,
+                abs(self.x2 - x) <= self.eps]) is True:
+            return True
+        if self.iterations > self.MAX_RECURSION_DEPTH:
+            Logger.log("! MAX_RECURSION_DEPTH reached !")
+            return True
+        return False
+
+    def find_x(self):
+        """
+            dx = x3-x2 = x2-x1
+            x* = x2 + ( dx*(f(x1)-f(x3)) ) / ( 2*(f(x1)-2*f(x2)+f(x3) )
+        """
+
+        headers = ["i", "x1", "x2", "x3", "f(x1)", "f(x2)", "f(x3)", "x*", "f(x*)"]
+        log_pattern = "{!s:<12.12}\t" * len(headers)
+        Logger.log(log_pattern.format(*headers))
+
+        def recursion_finder(i=1):
+            self.iterations = i
+
+            method = self._dsk if i == 1 else self._powell
+            x, fx = method()
+
+            Logger.log(log_pattern.format(i, self.x1, self.x2, self.x3, self.fx1, self.fx2, self.fx3, x, fx))
+
+            if self.should_stop(x, fx) is True:
+                Logger.log(f"\n---> found x={x} (f(x)={fx}) on i={self.iterations}")
+                return x
+
+            self.update_xs(x, fx)
+            return recursion_finder(i=i+1)
+
+        self.x = recursion_finder()
+        return self.x
+
+    # utils
+
+    def _dsk(self):
+        """ first iteration (method DSK) """
+        dx = self.x3 - self.x2
+        Logger.assertion(dx == (self.x2 - self.x1), f"dx = x3-x2 = x2-x1, but you has {dx} != {self.x2 - self.x1}")
+
+        x = self.x2 + dx*(self.fx1-self.fx3) / (2*(self.fx1-2*self.fx2+self.fx3))
+        fx = self.f(x)
+
+        return x, fx
+
+    def _powell(self):
+        """ another iterations (method Powell) """
+        a0 = self.fx1
+        a1 = (self.fx2 - self.fx1)/(self.x2 - self.x1)
+        a2 = 1/(self.x3-self.x2) * ((self.fx3-self.fx1)/(self.x3-self.x1) - (self.fx2-self.fx1)/(self.x2-self.x1))
+
+        g = lambda x: a0 + a1*(x-self.x1) + a2*(x-self.x1)*(x-self.x2)
+
+        x = (self.x1+self.x2)/2 - a1/a2 * 0.5
+        fx = g(x)
+
+        return x, fx
+
+    def update_xs(self, x, fx):
+        # new x2 is x with smallest f(x) value:
+        pairs = sorted([(self.x1, self.fx1), (self.x2, self.fx2), (self.x3, self.fx3), (x, fx)])
+        self.x2, self.fx2 = min(pairs, key=lambda i: i[1])
+
+        # and x1, x3 will be nearest to new x2:
+        idx = pairs.index((self.x2, self.fx2))
+        self.x1, self.fx1 = pairs[idx - 1]
+        self.x3, self.fx3 = pairs[idx + 1]
+
+
