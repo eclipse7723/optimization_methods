@@ -19,6 +19,7 @@ def gradient(fn, point, h=0.001):
         :type point: float|np.ndarray
     """
     if isinstance(point, np.ndarray):
+        point = point.astype(float)
         dxs = []
         for i in range(len(point)):
             p = point.copy()
