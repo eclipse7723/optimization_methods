@@ -81,7 +81,7 @@ class GradientDescentMixin:
             self.history.append(i, x, fx, direction)
 
             if self.should_stop(norm) is True:
-                Logger.log(f"\n---> found x={x} on i={self.iterations}")
+                Logger.log(f"---> found x={x} on i={self.iterations}", new_line=True)
                 return x
 
             self.update_step()
@@ -105,7 +105,6 @@ class OptimalGradientDescent(GradientDescentMixin):
     def find_step(self, *_):
         current = self.history.current
         sven_step = self.SVEN_STEP or 0.1 * get_vector_norm(current.x) / get_vector_norm(current.direction)
-        print(sven_step)
         interval = Sven(self.g, 0, sven_step).interval
         step = self.ONE_DIM_METHOD(self.g, *interval).x
         return step

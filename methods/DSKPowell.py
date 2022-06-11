@@ -65,7 +65,7 @@ class DSKPowell:
             Logger.log(log_pattern.format(i, self.x1, self.x2, self.x3, self.fx1, self.fx2, self.fx3, x, fx))
 
             if self.should_stop(x, fx) is True:
-                Logger.log(f"\n---> found x={x} (f(x)={fx}) on i={self.iterations}")
+                Logger.log(f"---> found x={x} (f(x)={fx}) on i={self.iterations}", new_line=True)
                 return x
 
             self.update_xs(x, fx)

@@ -31,10 +31,11 @@ class Logger:
         print(" "*Logger.CURRENT_DEPTH*3 + self.FILLCHAR*self.WIDTH)
 
     @classmethod
-    def log(cls, msg):
+    def log(cls, msg, new_line=False):
         if cls.ENABLE is False:
             return
-        print(" "*Logger.CURRENT_DEPTH*3 + f"  {msg}")
+        _new_line = "\n" if new_line else ""
+        print(_new_line + " "*Logger.CURRENT_DEPTH*3 + f"  {msg}")
 
     @classmethod
     def assertion(cls, expression, msg):

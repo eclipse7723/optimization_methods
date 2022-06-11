@@ -70,7 +70,7 @@ class GoldenSection:
         self.interval = recursion_finder()
         self.x = sum(self.interval) / 2
 
-        Logger.log(f"\n---> found x={self.x} and interval={self.interval} on i={self.iterations}")
+        Logger.log(f"---> found x={self.x} and interval={self.interval} on i={self.iterations}", new_line=True)
 
 
 
