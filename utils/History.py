@@ -1,9 +1,10 @@
 class History:
     class IterUnit:
-        def __init__(self, i, x, fx):
+        def __init__(self, i, x, fx, direction):
             self.i = i
             self.x = x
             self.fx = fx
+            self.direction = direction
 
         def __repr__(self):
             return f"<i={self.i}: x={self.x}, f(x)={self.fx}>"
@@ -13,6 +14,8 @@ class History:
 
     @property
     def current(self):
+        if len(self.__values) == 0:
+            return None
         return self.__values[-1]
 
     @property
@@ -21,8 +24,8 @@ class History:
             return None
         return self.__values[-2]
 
-    def append(self, i, x, fx):
-        iter_unit = History.IterUnit(i, x, fx)
+    def append(self, i, x, fx, direction):
+        iter_unit = History.IterUnit(i, x, fx, direction)
         self.__values.append(iter_unit)
 
     def clear(self):

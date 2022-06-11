@@ -37,4 +37,17 @@ def gradient_descent_const_test():
     x0 = np.array([6, 4])
     step = 3
 
-    GradientDescent(fn, x0, step, grad=lambda point: gradient(*point))
+    result = GradientDescent(fn, x0, step, grad=lambda point: gradient(*point)).start()
+    return result
+
+
+def gradient_descent_optimal_test():
+    fn = lambda x1, x2: 3*x1**2 + x1*x2 + 2*x2**2
+    gradient = lambda x1, x2: np.array([6*x1+x2, x1+4*x2])
+    x0 = np.array([6, 4])
+    params = {
+        "one_dim_method": "golden_section"
+    }
+
+    result = GradientDescent(fn, x0, grad=lambda point: gradient(*point), **params).start()
+    return result
