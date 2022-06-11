@@ -2,6 +2,7 @@ class Logger:
     ENABLE = True
     WIDTH = 100
     FILLCHAR = "="
+    CURRENT_DEPTH = 0
 
     class Colors:
         HEADER = '\033[95m'
@@ -20,24 +21,26 @@ class Logger:
     def __enter__(self):
         if self.ENABLE is False:
             return
-        print(f" {self.msg} ".center(self.WIDTH, self.FILLCHAR))
+        print(" "*Logger.CURRENT_DEPTH*3 + f" {self.msg} ".center(self.WIDTH, self.FILLCHAR))
+        Logger.CURRENT_DEPTH += 1
 
     def __exit__(self, *args):
         if self.ENABLE is False:
             return
-        print(self.FILLCHAR*self.WIDTH)
+        Logger.CURRENT_DEPTH -= 1
+        print(" "*Logger.CURRENT_DEPTH*3 + self.FILLCHAR*self.WIDTH)
 
     @classmethod
     def log(cls, msg):
         if cls.ENABLE is False:
             return
-        print(f"  {msg}")
+        print(" "*Logger.CURRENT_DEPTH*3 + f"  {msg}")
 
     @classmethod
     def assertion(cls, expression, msg):
         if expression is True:
             return True     # OK
-        input(f"{Logger.Colors.FAIL}AssertionError: {msg}{Logger.Colors.ENDC}")
+        input(" "*Logger.CURRENT_DEPTH*3 + f"{Logger.Colors.FAIL}AssertionError: {msg}{Logger.Colors.ENDC}")
         exit()
         return False
 
