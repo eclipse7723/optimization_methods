@@ -11,7 +11,7 @@ class GoldenSection:
     X1_COEFFICIENT = 0.382
     X2_COEFFICIENT = 0.618
 
-    def __init__(self, fn, a, b, eps):
+    def __init__(self, fn, a, b, eps=0.001):
         self.f = fn
         self.a = a
         self.b = b

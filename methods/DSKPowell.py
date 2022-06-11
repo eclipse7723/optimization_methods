@@ -11,7 +11,7 @@ class DSKPowell:
 
     MAX_RECURSION_DEPTH = 50
 
-    def __init__(self, fn, a, b, step, eps=0.001):
+    def __init__(self, fn, a, b, eps=0.001):
         """
             :param a: left bound
             :param b: right bound
@@ -23,7 +23,6 @@ class DSKPowell:
         self.fx2 = self.f(self.x2)
         self.x3 = b
         self.fx3 = self.f(self.x3)
-        self.step = step
         self.eps = eps
 
         self.iterations = 0
