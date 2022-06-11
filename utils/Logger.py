@@ -1,5 +1,7 @@
 class Logger:
     ENABLE = True
+    ASSERTION_EXIT = True
+
     WIDTH = 100
     FILLCHAR = "="
     CURRENT_DEPTH = 0
@@ -35,16 +37,21 @@ class Logger:
         if cls.ENABLE is False:
             return
         _new_line = "\n" if new_line else ""
-        print(_new_line + " "*Logger.CURRENT_DEPTH*3 + f"  {msg}")
+        print(_new_line + " "*Logger.CURRENT_DEPTH*3 + f"{msg}")
 
     @classmethod
     def assertion(cls, expression, msg):
         if expression is True:
             return True     # OK
-        input(" "*Logger.CURRENT_DEPTH*3 + f"{Logger.Colors.FAIL}AssertionError: {msg}{Logger.Colors.ENDC}")
-        exit()
+        f_msg = " "*Logger.CURRENT_DEPTH*3 + f"{Logger.Colors.FAIL}AssertionError: {msg}{Logger.Colors.ENDC}"
+        if cls.ASSERTION_EXIT is True:
+            input(f_msg)
+            exit()
+        else:
+            print(f_msg)
         return False
 
     @classmethod
     def setEnable(cls, state):
         cls.ENABLE = bool(state)
+
