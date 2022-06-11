@@ -12,7 +12,7 @@ def benchmark(func):
     return wrapper
 
 
-def gradient(fn, point, h=0.001):
+def gradient(fn, point, h=0.00001):
     """ central differences method
 
         :type fn: function
