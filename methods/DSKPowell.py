@@ -79,7 +79,8 @@ class DSKPowell:
     def _dsk(self):
         """ first iteration (method DSK) """
         dx = self.x3 - self.x2
-        Logger.assertion(dx == (self.x2 - self.x1), f"dx = x3-x2 = x2-x1, but you has {dx} != {self.x2 - self.x1}")
+        _dx = self.x2 - self.x1
+        Logger.assertion(bool(dx == _dx), f"dx = x3-x2 = x2-x1, but you has {dx} != {_dx}")
 
         x = self.x2 + dx*(self.fx1-self.fx3) / (2*(self.fx1-2*self.fx2+self.fx3))
         fx = self.f(x)
