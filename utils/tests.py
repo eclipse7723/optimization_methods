@@ -34,20 +34,22 @@ def rgr_third_iter_test():
 def gradient_descent_const_test():
     fn = lambda x1, x2: 3*x1**2 + x1*x2 + 2*x2**2
     gradient = lambda x1, x2: np.array([6*x1+x2, x1+4*x2])
-    x0 = np.array([6, 4])
+    x0 = np.array([6.0, 4.0])
     step = 3
 
-    result = GradientDescent(fn, x0, step, grad=lambda point: gradient(*point)).start()
+    result = GradientDescent(fn, x0, step=step, grad=lambda point: gradient(*point)).start()
     return result
 
 
 def gradient_descent_optimal_test():
-    fn = lambda x1, x2: 3*x1**2 + x1*x2 + 2*x2**2
-    gradient = lambda x1, x2: np.array([6*x1+x2, x1+4*x2])
+    fn = lambda x1, x2: 4*x1**2 + x1*x2 + x2**2
+    gradient = lambda x1, x2: np.array([8*x1+x2, x1+2*x2])
+    grad = None # lambda point: gradient(*point)
     x0 = np.array([6, 4])
+
     params = {
-        "one_dim_method": "golden_section"
+        "one_dim_method": "dsk_powell"
     }
 
-    result = GradientDescent(fn, x0, grad=lambda point: gradient(*point), **params).start()
+    result = GradientDescent(fn, x0, grad=grad, **params).start()
     return result

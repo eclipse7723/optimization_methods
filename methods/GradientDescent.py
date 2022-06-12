@@ -26,9 +26,9 @@ class GradientDescentMixin:
         self.history = History()
 
         self.f = fn
-        self.start_point = start_point
+        self.start_point = start_point.astype(float)
         self.eps = eps
-        self.step = None
+        self.step = step
 
         if grad is None:
             # numeric way
@@ -67,7 +67,7 @@ class GradientDescentMixin:
 
     def find_x(self):
         headers = ["i", "x", "f(x)", "∇f(x)", "||∇f(x)||", "direction", "step"]
-        log_pattern = "{!s:^3}\t" + "{!s:<25.25}\t" * (len(headers)-1)
+        log_pattern = "{!s:^3}\t" + "{!s:<35.35}\t" * (len(headers)-1)
         Logger.log(log_pattern.format(*headers))
 
         def recursive_finder(x, i=0):
@@ -81,7 +81,7 @@ class GradientDescentMixin:
             self.history.append(i, x, fx, direction)
 
             if self.should_stop(norm) is True:
-                Logger.log(f"---> found x={x} on i={self.iterations}", new_line=True)
+                Logger.log(f"---> found x=({x[0]:.24f}, {x[1]:.24f}) on i={self.iterations}", new_line=True)
                 return x
 
             self.update_step()
@@ -102,7 +102,7 @@ class OptimalGradientDescent(GradientDescentMixin):
         super().__init__(*args, **kwargs)
         self.g = lambda step: self.f(*(self.history.current.x + step * self.history.current.direction))
 
-    def find_step(self, *_):
+    def find_step(self, input_step=None):
         current = self.history.current
         sven_step = self.SVEN_STEP or 0.1 * get_vector_norm(current.x) / get_vector_norm(current.direction)
         interval = Sven(self.g, 0, sven_step).interval
@@ -119,9 +119,6 @@ class OptimalGradientDescent(GradientDescentMixin):
 
 class ConstGradientDescent(GradientDescentMixin):
     TYPE = "const"
-
-    def find_step(self, input_step):
-        return input_step
 
     def get_direction(self, gx, norm):
         direction = -gx/norm
