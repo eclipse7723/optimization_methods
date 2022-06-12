@@ -44,7 +44,7 @@ def gradient_descent_const_test():
 def gradient_descent_optimal_test():
     fn = lambda x1, x2: 4*x1**2 + x1*x2 + x2**2
     gradient = lambda x1, x2: np.array([8*x1+x2, x1+2*x2])
-    grad = None # lambda point: gradient(*point)
+    grad = lambda point: gradient(*point)
     x0 = np.array([6, 4])
 
     params = {
@@ -52,4 +52,18 @@ def gradient_descent_optimal_test():
     }
 
     result = GradientDescent(fn, x0, grad=grad, **params).start()
+    return result
+
+
+def gradient_descent_mod_tests():
+    fn = lambda x1, x2: 4*x1**2 + x1*x2 + x2**2
+    x0 = np.array([6, 4])
+
+    params = {
+        "one_dim_method": "golden_section",
+        "modification": "booth",
+        "delta": 1
+    }
+
+    result = GradientDescent(fn, x0, **params).start()
     return result
