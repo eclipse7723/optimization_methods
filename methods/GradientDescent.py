@@ -17,9 +17,10 @@ class GradientDescentMixin:
     """
 
     TYPE = None
+    MODIFICATION = None
     MAX_RECURSION_DEPTH = 200
 
-    def __init__(self, fn, start_point, step, eps=0.001, grad=None):
+    def __init__(self, fn, start_point, step, eps=0.001, grad=None, **kwargs):
         """ :param grad: should be a function that takes one arg: np.ndarray """
 
         self.iterations = 0
@@ -40,7 +41,9 @@ class GradientDescentMixin:
             self.grad = grad
 
     def start(self):
-        with Logger(f"Gradient Descent ({self.TYPE})"):
+        title = f"Gradient Descent ({self.TYPE})"
+        title += f", mod: {self.MODIFICATION}" if self.MODIFICATION is not None else ""
+        with Logger(title):
             self.find_x()
         return self
 
@@ -93,6 +96,9 @@ class GradientDescentMixin:
         return self.x
 
 
+# Main algorithms:
+
+
 class OptimalGradientDescent(GradientDescentMixin):
     TYPE = "optimal"
     SVEN_STEP = None
@@ -131,7 +137,28 @@ class ConstGradientDescent(GradientDescentMixin):
             self.step /= 2
 
 
+# Modifications:
+
+
+class BoothGradientDescent(OptimalGradientDescent):
+    MODIFICATION = "Booth"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.delta = kwargs.get("delta", 0.8)
+
+    def get_next_x(self, x, step, direction):
+        return x + self.delta * step * direction
+
+
+# Factory:
+
+
 class GradientDescent:
+    MODIFICATIONS = {
+        "booth": BoothGradientDescent
+    }
+
     @classmethod
     def optimal_setup_params(cls, params):
         one_dim_method = params.get("one_dim_method", "dsk_powell").lower()
@@ -143,9 +170,24 @@ class GradientDescent:
         if "sven_step" in params:
             OptimalGradientDescent.SVEN_STEP = float(params["sven_step"])
 
+    @classmethod
+    def choose_modification(cls, params):
+        if "modification" not in params:
+            return
+
+        mod = params["modification"].lower()
+        mod_gradient_descent = cls.MODIFICATIONS.get(mod)
+        return mod_gradient_descent
+
     def __new__(cls, fn, start_point, step=None, eps=0.001, grad=None, **params):
         if step is None:
             cls.optimal_setup_params(params)
+
+        mod_gradient_descent = cls.choose_modification(params)
+        if mod_gradient_descent is not None:
+            return mod_gradient_descent(fn, start_point, step, eps, grad, **params)
+
+        if step is None:
             return OptimalGradientDescent(fn, start_point, step, eps, grad)
         else:
             return ConstGradientDescent(fn, start_point, step, eps, grad)
