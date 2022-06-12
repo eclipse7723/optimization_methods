@@ -40,6 +40,10 @@ class GradientDescentMixin:
                 raise TypeError("Your gradient is not callable, also it should return np.ndarray")
             self.grad = grad
 
+        self.criteria = kwargs.get("criteria", 0)
+        # 0 - ||x_(k+1) - x_k|| / ||x_k|| < eps AND |f(x_(k+1) - f(x_k)| < eps
+        # 1 - ||∇f(x)|| < eps
+
     def start(self):
         title = f"Gradient Descent ({self.TYPE})"
         title += f", mod: {self.MODIFICATION}" if self.MODIFICATION is not None else ""
@@ -61,8 +65,22 @@ class GradientDescentMixin:
         next_x = x + step * direction
         return next_x
 
-    def should_stop(self, norm):
-        if norm <= self.eps:
+    def _check_criteria(self, gx_norm):
+        if self.criteria == 0:
+            if self.history.last is None:
+                return False
+            cur, last = self.history.current, self.history.last
+            if all([get_vector_norm(cur.x - last.x) < self.eps,
+                    abs(cur.fx - last.fx) < self.eps]) is True:
+                return True
+        elif self.criteria == 1:
+            if gx_norm <= self.eps:
+                return True
+
+        return False
+
+    def should_stop(self, gx_norm):
+        if self._check_criteria(gx_norm) is True:
             return True
         if self.iterations >= self.MAX_RECURSION_DEPTH:
             Logger.log("! MAX_RECURSION_DEPTH reached !")
