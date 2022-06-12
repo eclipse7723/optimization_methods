@@ -7,7 +7,7 @@ class GoldenSection:
         x1 = a + 0.382*L,   x2 = a + 0.618*L
     """
 
-    MAX_RECURSION_DEPTH = 50
+    MAX_RECURSION_DEPTH = 500
     X1_COEFFICIENT = 0.382
     X2_COEFFICIENT = 0.618
 
@@ -42,7 +42,7 @@ class GoldenSection:
         X1, X2 = self.X1_COEFFICIENT, self.X2_COEFFICIENT
 
         headers = ["i", "a", "x1", "x2", "b", "L", "f(x1)", "f(x2)"]
-        log_pattern = "{!s:<12.12}\t" * len(headers)
+        log_pattern = "{!s:^3}\t" + "{!s:<24.24}\t" * (len(headers)-1)
         Logger.log(log_pattern.format(*headers))
 
         def recursion_finder(i=1):
@@ -70,7 +70,8 @@ class GoldenSection:
         self.interval = recursion_finder()
         self.x = sum(self.interval) / 2
 
-        Logger.log(f"---> found x={self.x} and interval={self.interval} on i={self.iterations}", new_line=True)
+        fx = self.f(self.x)
+        Logger.log(f"---> found x={self.x:.24f} ({fx = :.24f}) and interval={self.interval} on i={self.iterations}", new_line=True)
 
 
 

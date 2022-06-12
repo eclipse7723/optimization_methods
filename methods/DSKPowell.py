@@ -9,7 +9,7 @@ class DSKPowell:
         x* = x2 + ( dx*(f(x1)-f(x3)) ) / ( 2*(f(x1)-2*f(x2)+f(x3) )
     """
 
-    MAX_RECURSION_DEPTH = 50
+    MAX_RECURSION_DEPTH = 500
 
     def __init__(self, fn, a, b, eps=0.001):
         """
@@ -65,7 +65,7 @@ class DSKPowell:
             Logger.log(log_pattern.format(i, self.x1, self.x2, self.x3, self.fx1, self.fx2, self.fx3, x, fx))
 
             if self.should_stop(x, fx) is True:
-                Logger.log(f"---> found x={x} (f(x)={fx}) on i={self.iterations}", new_line=True)
+                Logger.log(f"---> found x={x:.24f} (f(x)={fx:.24f}) on i={self.iterations}", new_line=True)
                 return x
 
             self.update_xs(x, fx)
@@ -80,7 +80,7 @@ class DSKPowell:
         """ first iteration (method DSK) """
         dx = self.x3 - self.x2
         _dx = self.x2 - self.x1
-        Logger.assertion(bool(dx == _dx), f"dx = x3-x2 = x2-x1, but you has {dx} != {_dx}")
+        Logger.assertion(bool(dx == _dx), f"dx = x3-x2 = x2-x1, but you has {dx:.48f} != {_dx:.48f}")
 
         x = self.x2 + dx*(self.fx1-self.fx3) / (2*(self.fx1-2*self.fx2+self.fx3))
         fx = self.f(x)

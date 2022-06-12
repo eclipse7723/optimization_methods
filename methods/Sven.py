@@ -7,7 +7,7 @@ class Sven:
         Находит интервал неопределённости
     """
 
-    MAX_RECURSION_DEPTH = 50
+    MAX_RECURSION_DEPTH = 500
 
     def __init__(self, fn, start_point, step):
         self.f = fn
@@ -23,7 +23,7 @@ class Sven:
             if self._set_step(step) is False:
                 self.interval = [self.start_point-step, self.start_point+step]
                 self.x = sum(self.interval) / 2
-                Logger.log(f"---> found x={self.x} and interval={self.interval} on i={self.iterations}")
+                self._report()
             else:
                 self.set_interval()
 
@@ -68,7 +68,7 @@ class Sven:
         """
 
         headers = ["k", "x_k", "∆*2^k", "x_(k+1)", "f(x_k)", "f(x_(k+1))"]
-        log_pattern = "{!s:<12.12}\t" * len(headers)
+        log_pattern = "{!s:^3}\t" + "{!s:<24.24}\t" * (len(headers)-1)
         Logger.log(log_pattern.format(*headers))
 
         if self.step is None:
@@ -92,5 +92,7 @@ class Sven:
 
         self.interval = recursive_finder(cur=self.start_point)
         self.x = sum(self.interval) / 2
+        self._report()
 
-        Logger.log(f"---> found x={self.x} and interval={self.interval} on i={self.iterations}", new_line=True)
+    def _report(self):
+        Logger.log(f"---> found x={self.x} and interval=({self.interval[0]:.24f}, {self.interval[1]:.24f}) on i={self.iterations}", new_line=True)
