@@ -58,7 +58,8 @@ class GradientDescentMixin:
         raise Exception("This class is Mixin, you should use class `GradientDescent`")
 
     def get_next_x(self, x, step, direction):
-        return x + step * direction
+        next_x = x + step * direction
+        return next_x
 
     def should_stop(self, norm):
         if norm <= self.eps:
@@ -151,12 +152,29 @@ class BoothGradientDescent(OptimalGradientDescent):
         return x + self.delta * step * direction
 
 
+class HeavyBallGradientDescent(OptimalGradientDescent):
+    MODIFICATION = "HeavyBall"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.delta = kwargs.get("delta", 0.8)
+
+    def get_next_x(self, x, step, direction):
+        if self.history.last is None:
+            heavy = 0
+        else:
+            heavy = self.delta * (self.history.last.x - x)
+        next_x = x + step * direction - heavy
+        return next_x
+
+
 # Factory:
 
 
 class GradientDescent:
     MODIFICATIONS = {
-        "booth": BoothGradientDescent
+        "booth": BoothGradientDescent,
+        "heavy_ball": HeavyBallGradientDescent
     }
 
     @classmethod
@@ -188,9 +206,9 @@ class GradientDescent:
             return mod_gradient_descent(fn, start_point, step, eps, grad, **params)
 
         if step is None:
-            return OptimalGradientDescent(fn, start_point, step, eps, grad)
+            return OptimalGradientDescent(fn, start_point, step, eps, grad, **params)
         else:
-            return ConstGradientDescent(fn, start_point, step, eps, grad)
+            return ConstGradientDescent(fn, start_point, step, eps, grad, **params)
 
 
 
