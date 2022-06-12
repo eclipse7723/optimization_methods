@@ -40,3 +40,24 @@ def get_vector_direction(vec: np.ndarray):
     norm = get_vector_norm(vec)
     direction = vec/norm
     return direction
+
+
+class Affector:
+    """
+    Example: increase h in gradient for each call
+    >>> f = lambda x1, x2: x2**2+x1*x2-x1**5
+    >>> wrapper = lambda point, h: gradient(f, point, h=10**-h)
+    >>> grad = Affector(wrapper, "h")
+    >>> grad(np.array([1.0, 5.0]))
+    """
+
+    def __init__(self, fn, key):
+        self.fn = fn
+        self.calls = 0
+        self.key = key
+
+    def __call__(self, *args, **kwargs):
+        kwargs[self.key] = self.calls
+        result = self.fn(*args, **kwargs)
+        self.calls += 1
+        return result
