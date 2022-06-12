@@ -58,7 +58,8 @@ class GradientDescentMixin:
         raise Exception("This class is Mixin, you should use class `GradientDescent`")
 
     def get_next_x(self, x, step, direction):
-        return x + step * direction
+        next_x = x + step * direction
+        return next_x
 
     def should_stop(self, norm):
         if norm <= self.eps:
@@ -107,12 +108,19 @@ class OptimalGradientDescent(GradientDescentMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.g = lambda step: self.f(*(self.history.current.x + step * self.history.current.direction))
+        self._report_one_dim_details = kwargs.get("report_one_dim_details", False)
 
     def find_step(self, input_step=None):
+        if self._report_one_dim_details is False:
+            Logger.ENABLE = False
+
         current = self.history.current
         sven_step = self.SVEN_STEP or 0.1 * get_vector_norm(current.x) / get_vector_norm(current.direction)
         interval = Sven(self.g, 0, sven_step).interval
         step = self.ONE_DIM_METHOD(self.g, *interval).x
+
+        if self._report_one_dim_details is False:
+            Logger.ENABLE = True
         return step
 
     def get_direction(self, gx, norm):
@@ -148,7 +156,30 @@ class BoothGradientDescent(OptimalGradientDescent):
         self.delta = kwargs.get("delta", 0.8)
 
     def get_next_x(self, x, step, direction):
-        return x + self.delta * step * direction
+        next_x = x + self.delta * step * direction
+        return next_x
+
+
+class LyusternikGradientDescent(OptimalGradientDescent):
+    MODIFICATION = "Lyusternik"
+
+    def get_beta_k(self):
+        if self.history.last is None:
+            return
+        cur, last = self.history.current, self.history.last
+        norm_cur = get_vector_norm(self.grad(cur.x))
+        norm_last = get_vector_norm(self.grad(last.x))
+        beta_k = norm_cur / norm_last
+        return beta_k
+
+    def update_step(self):
+        if self.history.last is None:
+            self.step = self.find_step()
+            return
+
+        beta_k = self.get_beta_k()
+        beta_coef = (beta_k / (1.0-beta_k))
+        self.step = beta_coef
 
 
 # Factory:
@@ -156,7 +187,8 @@ class BoothGradientDescent(OptimalGradientDescent):
 
 class GradientDescent:
     MODIFICATIONS = {
-        "booth": BoothGradientDescent
+        "booth": BoothGradientDescent,
+        "lyusternik": LyusternikGradientDescent
     }
 
     @classmethod
@@ -188,9 +220,9 @@ class GradientDescent:
             return mod_gradient_descent(fn, start_point, step, eps, grad, **params)
 
         if step is None:
-            return OptimalGradientDescent(fn, start_point, step, eps, grad)
+            return OptimalGradientDescent(fn, start_point, step, eps, grad, **params)
         else:
-            return ConstGradientDescent(fn, start_point, step, eps, grad)
+            return ConstGradientDescent(fn, start_point, step, eps, grad, **params)
 
 
 
