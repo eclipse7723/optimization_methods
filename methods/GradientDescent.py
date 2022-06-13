@@ -20,7 +20,7 @@ class GradientDescentMixin:
     MODIFICATION = None
     MAX_RECURSION_DEPTH = 200
 
-    def __init__(self, fn, start_point, step, eps=0.001, grad=None, **kwargs):
+    def __init__(self, fn, start_point, step, grad=None, **params):
         """ :param grad: should be a function that takes one arg: np.ndarray """
 
         self.iterations = 0
@@ -28,7 +28,6 @@ class GradientDescentMixin:
 
         self.f = fn
         self.start_point = start_point.astype(float)
-        self.eps = eps
         self.step = step
 
         if grad is None:
@@ -40,7 +39,8 @@ class GradientDescentMixin:
                 raise TypeError("Your gradient is not callable, also it should return np.ndarray")
             self.grad = grad
 
-        self.criteria = kwargs.get("criteria", 0)
+        self.criteria_eps = params.get("criteria_eps", 10**-3)
+        self.criteria = params.get("criteria", 1)
         # 0 - ||x_(k+1) - x_k|| / ||x_k|| < eps AND |f(x_(k+1) - f(x_k)| < eps
         # 1 - ||∇f(x)|| < eps
 
@@ -70,11 +70,11 @@ class GradientDescentMixin:
             if self.history.last is None:
                 return False
             cur, last = self.history.current, self.history.last
-            if all([get_vector_norm(cur.x - last.x) < self.eps,
-                    abs(cur.fx - last.fx) < self.eps]) is True:
+            if all([get_vector_norm(cur.x - last.x)/get_vector_norm(last.x) <= self.criteria_eps,
+                    abs(cur.fx - last.fx) <= self.criteria_eps]) is True:
                 return True
         elif self.criteria == 1:
-            if gx_norm <= self.eps:
+            if gx_norm <= self.criteria_eps:
                 return True
 
         return False
@@ -120,18 +120,19 @@ class GradientDescentMixin:
 
 class OptimalGradientDescent(GradientDescentMixin):
     TYPE = "optimal"
-    SVEN_STEP = None
     ONE_DIM_METHOD = DSKPowell
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, **params):
+        super().__init__(*args, **params)
         self.g = lambda step: self.f(*(self.history.current.x + step * self.history.current.direction))
+        self.sven_step = params.get("sven_step", None)
+        self.one_dim_eps = params.get("one_dim_eps", 10**-3)
 
     def find_step(self, input_step=None):
         current = self.history.current
-        sven_step = self.SVEN_STEP or 0.1 * get_vector_norm(current.x) / get_vector_norm(current.direction)
+        sven_step = self.sven_step or 0.1 * get_vector_norm(current.x) / get_vector_norm(current.direction)
         interval = Sven(self.g, 0, sven_step).interval
-        step = self.ONE_DIM_METHOD(self.g, *interval).x
+        step = self.ONE_DIM_METHOD(self.g, *interval, eps=self.one_dim_eps).x
         return step
 
     def get_direction(self, gx, norm):
@@ -215,18 +216,18 @@ class GradientDescent:
         mod_gradient_descent = cls.MODIFICATIONS.get(mod)
         return mod_gradient_descent
 
-    def __new__(cls, fn, start_point, step=None, eps=0.001, grad=None, **params):
+    def __new__(cls, fn, start_point, step=None, grad=None, **params):
         if step is None:
             cls.optimal_setup_params(params)
 
         mod_gradient_descent = cls.choose_modification(params)
         if mod_gradient_descent is not None:
-            return mod_gradient_descent(fn, start_point, step, eps, grad, **params)
+            return mod_gradient_descent(fn, start_point, step=step, grad=grad, **params)
 
         if step is None:
-            return OptimalGradientDescent(fn, start_point, step, eps, grad, **params)
+            return OptimalGradientDescent(fn, start_point, step=step, grad=grad, **params)
         else:
-            return ConstGradientDescent(fn, start_point, step, eps, grad, **params)
+            return ConstGradientDescent(fn, start_point, step=step, grad=grad, **params)
 
 
 
