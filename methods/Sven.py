@@ -75,22 +75,22 @@ class Sven:
             # interval found on step setup
             return
 
-        def recursive_finder(cur=None, i=0):
-            self.iterations = i
+        x0 = self.start_point
+        while True:
+            i = self.iterations
             step = self.step * 2**i
-            x0 = cur
             x1 = x0 + step
             fx0, fx1 = self.f(x0), self.f(x1)
             Logger.log(log_pattern.format(i, x0, step, x1, fx0, fx1))
 
             if self.should_stop(fx0, fx1):
                 self.iterations += 1    # adjust
-                interval = sorted([x0-step/2, x0+step/2])
-                return interval
+                self.interval = sorted([x0-step/2, x0+step/2])
+                break
 
-            return recursive_finder(cur=x1, i=i+1)
+            x0 = x1
+            self.iterations += 1
 
-        self.interval = recursive_finder(cur=self.start_point)
         self.x = sum(self.interval) / 2
         self._report()
 
