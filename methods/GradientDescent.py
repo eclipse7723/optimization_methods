@@ -129,12 +129,19 @@ class OptimalGradientDescent(GradientDescentMixin):
         self.g = lambda step: self.f(*(self.history.current.x + step * self.history.current.direction))
         self.sven_step = params.get("sven_step", None)
         self.one_dim_eps = params.get("one_dim_eps", 10**-3)
+        self._report_one_dim_details = params.get("report_one_dim_details", False)
 
     def find_step(self, input_step=None):
+        if self._report_one_dim_details is False:
+            Logger.ENABLE = False
+
         current = self.history.current
         sven_step = self.sven_step or 0.1 * get_vector_norm(current.x) / get_vector_norm(current.direction)
         interval = Sven(self.g, 0, sven_step).interval
         step = self.ONE_DIM_METHOD(self.g, *interval, eps=self.one_dim_eps).x
+
+        if self._report_one_dim_details is False:
+            Logger.ENABLE = True
         return step
 
     def get_direction(self, gx, norm):
