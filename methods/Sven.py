@@ -7,7 +7,7 @@ class Sven:
         Находит интервал неопределённости
     """
 
-    MAX_RECURSION_DEPTH = 500
+    MAX_ITERATIONS = 2000
 
     def __init__(self, fn, start_point, step):
         self.f = fn
@@ -52,7 +52,7 @@ class Sven:
             Criteria: f(x0) < f(x1) - means, that on x1 function starts growing
             :return: True if criteria is passed or reached max_recursion_depth, otherwise False
         """
-        max_recursion_reached = self.iterations > self.MAX_RECURSION_DEPTH
+        max_recursion_reached = self.iterations > self.MAX_ITERATIONS
         if max_recursion_reached or fx0 < fx1:
             if max_recursion_reached:
                 Logger.log("! MAX_RECURSION_DEPTH reached !")

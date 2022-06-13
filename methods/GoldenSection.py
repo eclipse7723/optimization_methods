@@ -7,7 +7,7 @@ class GoldenSection:
         x1 = a + 0.382*L,   x2 = a + 0.618*L
     """
 
-    MAX_RECURSION_DEPTH = 500
+    MAX_ITERATIONS = 2000
     X1_COEFFICIENT = 0.382
     X2_COEFFICIENT = 0.618
 
@@ -33,7 +33,7 @@ class GoldenSection:
         """
         if abs(self.b - self.a) <= self.eps:
             return True
-        if self.iterations > self.MAX_RECURSION_DEPTH:
+        if self.iterations > self.MAX_ITERATIONS:
             Logger.log("! MAX_RECURSION_DEPTH reached !")
             return True
         return False
@@ -45,12 +45,12 @@ class GoldenSection:
         log_pattern = "{!s:^3}\t" + "{!s:<24.24}\t" * (len(headers)-1)
         Logger.log(log_pattern.format(*headers))
 
-        def recursion_finder(i=1):
+        while True:
             if self.should_stop() is True:
-                interval = [self.a, self.b]
-                return interval
+                self.interval = [self.a, self.b]
+                break
 
-            self.iterations = i
+            self.iterations += 1
 
             L = self.b - self.a
             x1 = self.a + X1 * L
@@ -58,16 +58,13 @@ class GoldenSection:
             fx1 = self.f(x1)
             fx2 = self.f(x2)
 
-            Logger.log(log_pattern.format(i, self.a, x1, x2, self.b, L, fx1, fx2))
+            Logger.log(log_pattern.format(self.iterations, self.a, x1, x2, self.b, L, fx1, fx2))
 
             if fx1 <= fx2:
                 self.b = x2
             else:
                 self.a = x1
 
-            return recursion_finder(i+1)
-
-        self.interval = recursion_finder()
         self.x = sum(self.interval) / 2
 
         fx = self.f(self.x)
