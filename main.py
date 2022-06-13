@@ -11,7 +11,61 @@ Logger.ENABLE = False
 # //////// INPUT DATA
 
 fn = lambda x1, x2: (10 * (x1 - x2) ** 2 + (x1 - 1) ** 2) ** 4
-start_point = np.array([-1.2, 0.0])
+start_point = np.array([-1.2, 0])
+searched_point = np.array([1.0, 1.0])
+
+
+def make_data(size, step):
+    bounds = np.array([-size, size])
+    x = np.arange(*(searched_point[0]+bounds), step)
+    y = np.arange(*(searched_point[1]+bounds), step)
+    xgrid, ygrid = np.meshgrid(x, y)
+
+    z = fn(xgrid, ygrid)
+    return xgrid, ygrid, z
+
+
+def contour(data):
+    fig, axes = plt.subplots(1, 1)
+    cs = axes.contour(*data, cmap="viridis")
+    axes.clabel(cs)
+    return fig, axes
+
+
+def contourf(data):
+    fig, axes = plt.subplots(1, 1)
+    cs = axes.contourf(*data, cmap="viridis")
+    axes.clabel(cs)
+    return fig, axes
+
+
+def fig3d(data):
+    fig = plt.figure()
+    axes = fig.add_subplot(projection='3d')
+    axes.plot_surface(*data, cmap='viridis')
+    return fig, axes
+
+
+def accuracy(point):
+    return np.average(1.0 - abs(searched_point - point.x) / point.x)
+
+
+def set_graphic(ax: plt.axes, values, title):
+    # acc = np.array([accuracy(p) for p in values[2]])
+    print(title, values)
+
+    # ax.bar(values[0], acc*60, color="green", alpha=0.5)
+    ax.plot(values[0], values[1], marker='o')
+    ax.set_ylabel("кількість ітерацій")
+    ax.set_xlabel("точність")
+    ax.set_title(title)
+    ax.set_xticks(values[0], [f"1e-{i}" for i in values[0]])
+    for i, (x, y, point) in enumerate(zip(*values)):
+        # _acc = acc[i]
+        # ax.annotate(f"{_acc*100.0:.1f}%", (x-0.35, _acc*60*0.5))
+        ax.annotate(y, (x, y))
+    ax.set_ylim(0, 60)
+    ax.grid(True)
 
 
 def task1():
@@ -27,23 +81,12 @@ def task1():
             "grad": grad,
             "step": None,
             "one_dim_eps": 10**-eps,
-            "criteria_eps": 10**-criteria
+            "criteria_eps": 10**-criteria,
+            "criteria": 0
         }
 
         result = GradientDescent(fn, start_point, **params).start()
         return result
-
-    def set_graphic(ax: plt.axes, values, title):
-        print(title, values)    # , values[:2], list(map(lambda x: f"{x:.10f}", values[2])))
-        ax.plot(values[0], values[1], marker='o')
-        ax.set_ylabel("кількість ітерацій")
-        ax.set_xlabel("точність")
-        ax.set_title(title)
-        ax.set_xticks(values[0], [f"1e-{i}" for i in values[0]])
-        for i, (x, y, _) in enumerate(zip(*values)):
-            ax.annotate(y, (x, y))
-        ax.set_ylim(0, 60)
-        ax.grid(True)
 
     fig, axes = plt.subplots(4, 1, figsize=(9, 12))
 
@@ -53,7 +96,7 @@ def task1():
         result = eps_test(h=i, eps=3, criteria=3)
         grad_eps_test[0].append(i)
         grad_eps_test[1].append(result.iterations)
-        grad_eps_test[2].append(result.f(*result.x))
+        grad_eps_test[2].append(result.history.current)
 
     print("\neps test\n")
     gd_eps_test = [[],[], []]
@@ -61,7 +104,7 @@ def task1():
         result = eps_test(eps=i)
         gd_eps_test[0].append(i)
         gd_eps_test[1].append(result.iterations)
-        gd_eps_test[2].append(result.f(*result.x))
+        gd_eps_test[2].append(result.history.current)
 
     print("\ncriteria eps test\n")
     criteria_eps_test = [[],[], []]
@@ -69,7 +112,7 @@ def task1():
         result = eps_test(criteria=i)
         criteria_eps_test[0].append(i)
         criteria_eps_test[1].append(result.iterations)
-        criteria_eps_test[2].append(result.f(*result.x))
+        criteria_eps_test[2].append(result.history.current)
 
     print("\ngradient and epses test\n")
     gd_grad_eps_test = [[],[], []]
@@ -77,7 +120,7 @@ def task1():
         result = eps_test(eps=i, h=i, criteria=i)
         gd_grad_eps_test[0].append(i)
         gd_grad_eps_test[1].append(result.iterations)
-        gd_grad_eps_test[2].append(result.f(*result.x))
+        gd_grad_eps_test[2].append(result.history.current)
 
     # grad_eps_test = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [200, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 4], [1.1138654959679026, 1.9338322273837666e-12, 1.9016646035506197e-06, 2.3389657061528475e-07, 4.451843947909425e-07, 2.610362292855971e-07, 2.467447660342118e-07, 2.4539476994885313e-07, 2.4498450675062175e-07, 2.466972798163045e-07, 2.4537393558127494e-07, 8.620702700112414e-07, 1.3194196669345807e-09, 5.904492652622623e-09, 3.4553994366211173e-13]]
     # gd_eps_test = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [20, 6, 6, 36, 36, 36, 3, 3, 3, 3, 3, 3, 3, 3, 3], [1.97068568802946e-05, 2.327936863777599e-06, 4.451843947909425e-07, 2.396973756410826e-05, 2.6334322053867958e-05, 2.770784173437725e-05, 1.7554788893405403e-05, 1.1677548339730388e-08, 2.593894134924519e-06, 1.4325390264757815e-06, 1.3845917938177057e-06, 1.3803413848006244e-06, 1.3790148734085724e-06, 1.379048340538573e-06, 1.3790317758982276e-06]]
@@ -96,6 +139,58 @@ def task1():
     fig.savefig("graphics/task1.png")
 
 
+def task2():
+    eps = 4
+
+    grad = lambda point: gradient(fn, point, 10 ** -10)
+
+    params = {
+        "one_dim_method": "golden_section",
+        "grad": grad,
+        "one_dim_eps": 10 ** -eps,
+        "criteria_eps": 10 ** -eps,
+        "criteria": 0,
+        "modification": "heavy_ball"
+    }
+
+    @benchmark
+    def calc():
+        return GradientDescent(fn, start_point, **params).start()
+
+    result = calc()
+    point = result.history.current
+    print(f"{accuracy(point):.24f}%", point.fx, result.iterations)
+
+    way = [[], [], []]
+    for unit in result.history.items():
+        way[0].append(unit.x[0])
+        way[1].append(unit.x[1])
+        way[2].append(unit.fx)
+
+    data = make_data(5, 0.05)
+
+    fig1, ax1 = contour(data)
+    ax1.scatter(*searched_point, color="red", s=50)
+    ax1.plot(way[0], way[1], marker="o", markersize=5)
+    for i, (x, y) in enumerate(zip(way[0], way[1])):
+        ax1.annotate(i, (x - 0.1, y + 0.1))
+    fig1.show()
+    fig1.savefig("graphics/levels.png")
+
+    # fig2, ax2 = fig3d(data)
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(projection='3d')
+    ax2.scatter(*searched_point, color="red", s=50)
+    ax2.plot(*way, marker="o")
+    ax2.view_init(30, 30)
+    fig2.show()
+    fig2.savefig("graphics/3dplot2.png")
+
+
 ####
 
-task1()
+
+if __name__ == "__main__":
+    # task1()
+    task2()
+
