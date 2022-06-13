@@ -181,6 +181,7 @@ class BoothGradientDescent(OptimalGradientDescent):
 
 
 class HeavyBallGradientDescent(OptimalGradientDescent):
+    # fixme
     MODIFICATION = "HeavyBall"
 
     def __init__(self, *args, **kwargs):
@@ -196,13 +197,37 @@ class HeavyBallGradientDescent(OptimalGradientDescent):
         return next_x
 
 
+class LyusternikGradientDescent(OptimalGradientDescent):
+    # fixme
+    MODIFICATION = "Lyusternik"
+
+    def get_beta_k(self):
+        if self.history.last is None:
+            return
+        cur, last = self.history.current, self.history.last
+        norm_cur = get_vector_norm(self.grad(cur.x))
+        norm_last = get_vector_norm(self.grad(last.x))
+        beta_k = norm_cur / norm_last
+        return beta_k
+
+    def update_step(self):
+        if self.history.last is None:
+            self.step = self.find_step()
+            return
+
+        beta_k = self.get_beta_k()
+        beta_coef = (beta_k / (1.0-beta_k))
+        self.step = beta_coef
+
+
 # Factory:
 
 
 class GradientDescent:
     MODIFICATIONS = {
         "booth": BoothGradientDescent,
-        "heavy_ball": HeavyBallGradientDescent
+        "heavy_ball": HeavyBallGradientDescent,
+        "lyusternik": LyusternikGradientDescent,
     }
 
     @classmethod
