@@ -55,7 +55,7 @@ class DSKPowell:
         """
 
         headers = ["i", "x1", "x2", "x3", "f(x1)", "f(x2)", "f(x3)", "x*", "f(x*)"]
-        log_pattern = "{!s:<12.12}\t" * len(headers)
+        log_pattern = "{!s:^3}\t" + "{!s:<24.24}\t" * (len(headers)-1)
         Logger.log(log_pattern.format(*headers))
 
         while True:

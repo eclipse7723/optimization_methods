@@ -7,7 +7,7 @@ class History:
             self.direction = direction
 
         def __repr__(self):
-            return f"<i={self.i}: x={self.x}, f(x)={self.fx}>"
+            return f"<i={self.i}: x={self.x}, f(x)={self.fx:.10f}>"
 
     def __init__(self):
         self.__values = []
