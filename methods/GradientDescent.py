@@ -18,7 +18,7 @@ class GradientDescentMixin:
 
     TYPE = None
     MODIFICATION = None
-    MAX_RECURSION_DEPTH = 200
+    MAX_ITERATIONS = 2000
 
     def __init__(self, fn, start_point, step, grad=None, **params):
         """ :param grad: should be a function that takes one arg: np.ndarray """
@@ -26,6 +26,7 @@ class GradientDescentMixin:
         self.iterations = 0
         self.history = History()
 
+        self.x = None
         self.f = fn
         self.start_point = start_point.astype(float)
         self.step = step
@@ -82,7 +83,7 @@ class GradientDescentMixin:
     def should_stop(self, gx_norm):
         if self._check_criteria(gx_norm) is True:
             return True
-        if self.iterations >= self.MAX_RECURSION_DEPTH:
+        if self.iterations >= self.MAX_ITERATIONS:
             Logger.log("! MAX_RECURSION_DEPTH reached !")
             return True
         return False
@@ -92,8 +93,10 @@ class GradientDescentMixin:
         log_pattern = "{!s:^3}\t" + "{!s:<35.35}\t" * (len(headers)-1)
         Logger.log(log_pattern.format(*headers))
 
-        def recursive_finder(x, i=0):
-            self.iterations = i
+        x = self.start_point
+        while True:
+            i = self.iterations
+
             fx = self.f(*x)
             gx = self.grad(x)
             norm = get_vector_norm(gx)
@@ -104,15 +107,14 @@ class GradientDescentMixin:
 
             if self.should_stop(norm) is True:
                 Logger.log(f"---> found x=({x[0]:.24f}, {x[1]:.24f}) on i={self.iterations}", new_line=True)
-                return x
+                self.x = x
+                break
 
             self.update_step()
-            next_x = self.get_next_x(x, self.step, direction)
+            x = self.get_next_x(x, self.step, direction)
+            self.iterations += 1
 
-            return recursive_finder(next_x, i=i+1)
-
-        self.x = recursive_finder(self.start_point)
-        return self.x
+        return x
 
 
 # Main algorithms:
