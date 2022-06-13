@@ -9,7 +9,7 @@ class DSKPowell:
         x* = x2 + ( dx*(f(x1)-f(x3)) ) / ( 2*(f(x1)-2*f(x2)+f(x3) )
     """
 
-    MAX_RECURSION_DEPTH = 500
+    MAX_ITERATIONS = 500
 
     def __init__(self, fn, a, b, eps=0.001):
         """
@@ -38,11 +38,13 @@ class DSKPowell:
                 |x2 - x*| <= eps
             :return: True if criteria is passed or reached max_recursion_depth, otherwise False
         """
+        if self.x is not None:
+            return True
         if all([abs(self.fx2 - fx) <= self.eps,
                 abs(self.x2 - x) <= self.eps]) is True:
             return True
-        if self.iterations > self.MAX_RECURSION_DEPTH:
-            Logger.log("! MAX_RECURSION_DEPTH reached !")
+        if self.iterations >= self.MAX_ITERATIONS:
+            Logger.log("! MAX_ITERATIONS reached !")
             return True
         return False
 
@@ -56,25 +58,29 @@ class DSKPowell:
         log_pattern = "{!s:<12.12}\t" * len(headers)
         Logger.log(log_pattern.format(*headers))
 
-        def recursion_finder(i=1):
-            self.iterations = i
+        while True:
+            self.iterations += 1
 
-            method = self._dsk if i == 1 else self._powell
+            method = self._dsk if self.iterations == 1 else self._powell
             x, fx = method()
 
-            Logger.log(log_pattern.format(i, self.x1, self.x2, self.x3, self.fx1, self.fx2, self.fx3, x, fx))
+            Logger.log(log_pattern.format(self.iterations, self.x1, self.x2, self.x3, self.fx1, self.fx2, self.fx3, x, fx))
 
             if self.should_stop(x, fx) is True:
-                Logger.log(f"---> found x={x:.24f} (f(x)={fx:.24f}) on i={self.iterations}", new_line=True)
-                return x
+                self.x = x
+                break
 
-            self.update_xs(x, fx)
-            return recursion_finder(i=i+1)
+            if self.update_xs(x, fx) is False:
+                break
 
-        self.x = recursion_finder()
+        self._report()
         return self.x
 
     # utils
+
+    def _report(self):
+        fx = self.f(self.x)
+        Logger.log(f"---> found x={self.x:.24f} (f(x)={fx:.24f}) on i={self.iterations}", new_line=True)
 
     def _dsk(self):
         """ first iteration (method DSK) """
@@ -107,7 +113,12 @@ class DSKPowell:
 
         # and x1, x3 will be nearest to new x2:
         idx = pairs.index((self.x2, self.fx2))
+
+        if idx == 0 or idx == len(pairs)-1:
+            self.x = pairs[idx][0]
+            return False
+
         self.x1, self.fx1 = pairs[idx - 1]
         self.x3, self.fx3 = pairs[idx + 1]
-
+        return True
 
