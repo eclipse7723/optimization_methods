@@ -45,9 +45,9 @@ class History:
 
     def __setitem__(self, i, value):
         if isinstance(value, (list, tuple)) is False:
-            raise TypeError("Value must be list or tuple and has 3 items: i, x, fx")
-        if len(value) != 3:
-            raise ValueError("You should input 3 values: i, x, fx")
+            raise TypeError("Value must be list or tuple and has 3 items: i, x, fx, direction")
+        if len(value) != 4:
+            raise ValueError("You should input 3 values: i, x, fx, direction")
         iter_unit = History.IterUnit(*value)
         self.__values[i] = iter_unit
 
