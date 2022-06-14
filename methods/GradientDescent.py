@@ -229,14 +229,16 @@ class GradientDescent:
         "heavy_ball": HeavyBallGradientDescent,
         "lyusternik": LyusternikGradientDescent,
     }
+    ONE_DIM_METHODS = {
+        "dsk_powell": DSKPowell,
+        "golden_section": GoldenSection
+    }
 
     @classmethod
     def optimal_setup_params(cls, params):
         one_dim_method = params.get("one_dim_method", "dsk_powell").lower()
-        if one_dim_method == "dsk_powell":
-            OptimalGradientDescent.ONE_DIM_METHOD = DSKPowell
-        elif one_dim_method == "golden_section":
-            OptimalGradientDescent.ONE_DIM_METHOD = GoldenSection
+        if one_dim_method in cls.ONE_DIM_METHODS:
+            OptimalGradientDescent.ONE_DIM_METHOD = cls.ONE_DIM_METHODS[one_dim_method]
 
         if "sven_step" in params:
             OptimalGradientDescent.SVEN_STEP = float(params["sven_step"])
