@@ -11,7 +11,7 @@ Logger.ENABLE = False
 # //////// INPUT DATA
 
 fn = lambda x1, x2: (10 * (x1 - x2) ** 2 + (x1 - 1) ** 2) ** 4
-start_point = np.array([-1.2, 0])
+start_point = np.array([-1.2, 0.0])
 searched_point = np.array([1.0, 1.0])
 
 
@@ -145,12 +145,11 @@ def task2():
     grad = lambda point: gradient(fn, point, 10 ** -10)
 
     params = {
-        "one_dim_method": "golden_section",
         "grad": grad,
         "one_dim_eps": 10 ** -eps,
         "criteria_eps": 10 ** -eps,
-        "criteria": 0,
-        "modification": "heavy_ball"
+        "criteria": 1,
+        "modification": "booth"
     }
 
     @benchmark
@@ -187,10 +186,64 @@ def task2():
     fig2.savefig("graphics/3dplot2.png")
 
 
+def task3():
+    def test(step):
+        grad = lambda point: gradient(fn, point, 10**-10)
+
+        params = {
+            "grad": grad,
+            "step": step,
+            "criteria_eps": 10**-8,
+            "criteria": 1
+        }
+
+        result = GradientDescent(fn, start_point, **params).start()
+        return result
+
+    values = [[], [], []]   # i, iters, step
+    # steps = np.linspace(500, 0.1, num=20)
+    steps = [421.07, 52.72]
+    for i, step in enumerate(steps):
+        res = test(step)
+        values[0].append(i)
+        values[1].append(res.iterations)
+
+        way = [[], [], []]
+        for unit in res.history.items():
+            way[0].append(unit.x[0])
+            way[1].append(unit.x[1])
+            way[2].append(unit.fx)
+
+        values[2].append(way)
+        # values[3].append(step)
+
+    # fig, ax = plt.subplots(1, 1, figsize=(8,5))
+
+    # ax.bar(values[0], values[1])
+    # ax.set_ylabel("кількість ітерацій")
+    # ax.set_xlabel("початкова довжина кроку")
+    # ax.set_xticks(values[0], [f"{round(s,2)}" for s in values[2]], rotation=45)
+    # for i, (x, y, s) in enumerate(zip(*values)):
+    #     ax.annotate(y, (x-0.35, y/2), color="white")
+    # # ax.set_ylim(0, 60)
+
+    fig = plt.figure()
+
+    for i in range(len(values[0])):
+        way = values[2][i]
+
+        ax = fig.add_subplot(1, 2, i+1, projection="3d")
+        ax.scatter(*searched_point, color="red", s=50)
+        ax.plot(*way, marker="o")
+        ax.view_init(30, 60)
+
+    fig.set_tight_layout(True)
+
+    fig.show()
+
 ####
 
 
 if __name__ == "__main__":
-    # task1()
     task2()
 
