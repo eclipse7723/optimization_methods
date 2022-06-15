@@ -5,12 +5,19 @@ import matplotlib.pyplot as plt
 
 
 Logger.ASSERTION_EXIT = False
-Logger.ENABLE = False
+Logger.ENABLE = True
 
 
 # //////// INPUT DATA
+i = 0
 
-fn = lambda x1, x2: (10 * (x1 - x2) ** 2 + (x1 - 1) ** 2) ** 4
+
+def fn(x1, x2):
+    global i
+    i += 1
+    return (10 * (x1 - x2) ** 2 + (x1 - 1) ** 2) ** 4
+
+
 start_point = np.array([-1.2, 0.0])
 searched_point = np.array([1.0, 1.0])
 
@@ -140,14 +147,15 @@ def task1():
 
 
 def task2():
-    eps = 4
+    eps = 8
 
-    grad = lambda point: gradient(fn, point, 10 ** -10)
+    grad = lambda point: gradient(fn, point, 10 ** -8)
 
     params = {
         "grad": grad,
-        "one_dim_eps": 10 ** -eps,
-        "criteria_eps": 10 ** -eps,
+        "one_dim_method": "dsk_powell",
+        "one_dim_eps": 10 ** -3,
+        "criteria_eps": 10 ** -8,
         "criteria": 1,
         "modification": "booth"
     }
@@ -246,4 +254,5 @@ def task3():
 
 if __name__ == "__main__":
     task2()
+    print(i)
 
