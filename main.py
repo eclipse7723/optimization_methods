@@ -153,11 +153,11 @@ def task2():
 
     params = {
         "grad": grad,
-        "one_dim_method": "dsk_powell",
-        "one_dim_eps": 10 ** -3,
+        # "one_dim_method": "dsk_powell",
+        # "one_dim_eps": 10 ** -3,
+        "step": 15,
         "criteria_eps": 10 ** -8,
-        "criteria": 1,
-        "modification": "booth"
+        "criteria": 1
     }
 
     @benchmark

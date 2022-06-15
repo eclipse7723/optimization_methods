@@ -132,6 +132,7 @@ class OptimalGradientDescent(GradientDescentMixin):
         self._report_one_dim_details = params.get("report_one_dim_details", False)
 
     def find_step(self, input_step=None):
+        logger_enable = Logger.ENABLE
         if self._report_one_dim_details is False:
             Logger.ENABLE = False
 
@@ -141,7 +142,7 @@ class OptimalGradientDescent(GradientDescentMixin):
         step = self.ONE_DIM_METHOD(self.g, *interval, eps=self.one_dim_eps).x
 
         if self._report_one_dim_details is False:
-            Logger.ENABLE = True
+            Logger.ENABLE = logger_enable
         return step
 
     def get_direction(self, gx, norm):
@@ -163,6 +164,7 @@ class ConstGradientDescent(GradientDescentMixin):
         if self.history.last is None:
             return
         if self.history.current.fx > self.history.last.fx:
+            self.history.pop()
             self.step /= 2
 
 
@@ -236,7 +238,7 @@ class GradientDescent:
 
     @classmethod
     def optimal_setup_params(cls, params):
-        one_dim_method = params.get("one_dim_method", "dsk_powell").lower()
+        one_dim_method = params.get("one_dim_method", "golden_section").lower()
         if one_dim_method in cls.ONE_DIM_METHODS:
             OptimalGradientDescent.ONE_DIM_METHOD = cls.ONE_DIM_METHODS[one_dim_method]
 
