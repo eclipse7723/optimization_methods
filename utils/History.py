@@ -34,6 +34,10 @@ class History:
     def items(self):
         return self.__values
 
+    def pop(self):
+        iter_unit = self.__values.pop()
+        return iter_unit
+
     def __str__(self):
         return f"<History [{len(self.__values)} records]>"
 
